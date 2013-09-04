@@ -41,6 +41,9 @@ def waOnAuthSuccess(username):
     methodsInterface.call("ready")
 
 def waOnMessageReceived(messageId, jid, messageContent, timestamp, wantsReceipt, pushName, isBroadCast):
+    repeatMessage(messageId, jid, messageContent)
+
+def repeatMessage(messageId, jid, messageContent):
     try:
         nick = wa_contacts[jid[:11]]
     except KeyError:
@@ -53,7 +56,7 @@ def waOnGroupMessageReceived(messageId, jid, author, messageContent, timestamp, 
         print "setting group to " + jid
         global wa_group
         wa_group = jid
-    methodsInterface.call("message_ack", (jid, messageId))
+    repeatMessage(messageId, jid, messageContent)
 
 wa_password = base64.b64decode(bytes(wa_password.encode('utf-8')))
 
