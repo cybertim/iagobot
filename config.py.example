@@ -1,0 +1,16 @@
+#!/usr/bin/python
+
+# Add all users to the contact list so there names will appear in the channel when they talk on whatsapp
+# If a
+wa_contacts = {"31612341234" : "ircuser1", "34123456789" : "iago"}
+# This is the phone number of the whatsapp account used for the bot
+wa_username = "31123123123"
+# This is the whatsapp password retreived with the 'yowsup-cli' or other compatible offline whatsapp registration tool
+wa_password = "abcdefghijklmnopqrstuvwxyz="
+# This is the groupschat jid of whatsapp - can be left blank (see README.md)
+wa_group = ""
+# Irc server and settings - change to your liking
+irc_server = "irc.servercentral.net"
+irc_channel = "#test"
+irc_port = 6667
+irc_nickname = "Iagobot"
