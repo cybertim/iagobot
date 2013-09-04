@@ -12,8 +12,20 @@ simple Whatsapp bridge to and from IRC based on irclib and yowsup
 
 ### Usage Information
 
-You can set a whatsapp 'jid' of the whatsapp group in the 'config.py' but if you invite the 'iagobot' to a groupschat it will be the default group for the running session.
-This is also an easy way to retreive the 'whatsapp group jid' from the logs and set it as a default in the 'config.py'
+First register your 'iagobot' with whatsapp (see registration with whatsapp) and set the correct settings in the config.py.
+Keep the 'wa_group' empty for the first run.
+Start the bot by executing './bot.py' and keep the log open.
+
+Start a whatsapp chat with the bot (use the new registered phone number set in the 'config.py')
+You can say 'help' and see all the options.
+Let the bot create a group by saying 'create', after the creation you can tell the bot to 'add' you.
+
+Check your log for "!!!!!!!! JID: 123123123-123123123@g.us !!!!!!!!"
+And copy this JID (all numbers including the '@g.us') in the 'wa_group' setting of the 'config.py' so the bot knows the exact group when its restarted.
+
+Now everybody who likes to enter the group whatsapp can add the bots phone number to its contact list and ask him to 'add'.
+
+Remember to add every new person to the 'config.py' so the bot knows what name to show on irc when a person chats on whatsapp.
 
 Currently the bot can only join 1 channel and 1 groupschat.
 
