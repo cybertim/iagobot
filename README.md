@@ -19,7 +19,7 @@ Currently the bot can only join 1 channel and 1 groupschat.
 
 ### Registration Whatsapp
 
-You can register an extra phone number (by an extra simcard) to use with this bot.
+You can register an extra phone number (buy an extra simcard) to use with this bot.
 To register to whatsapp and get the correct password:
 
 1. go to http://whitesoft.dyndns.org:2222/whatsapp_sms and request an sms
