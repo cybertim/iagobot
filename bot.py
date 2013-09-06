@@ -5,18 +5,30 @@ from irclib import IRC, ServerConnectionError
 from Yowsup.connectionmanager import YowsupConnectionManager
 from config import *
 
+# init yowsup
 ycm = YowsupConnectionManager()
 signalsInterface = ycm.getSignalsInterface()
 methodsInterface = ycm.getMethodsInterface()
 # temp var for the creation of group
 creator = ""
 
+# first connect to irc
 client = IRC()
 try:
     irc = client.server().connect(irc_server, irc_port, irc_nickname)
 except ServerConnectionError as x:
     print x
     exit(1)
+
+# the length of the phonenumber is 11 by default
+# if your country uses something else, change the 11 here
+# to the length you have in the config.py to ident the nicks
+def getNick(jid):
+    try:
+        nick = wa_contacts[jid[:11]]
+    except KeyError:
+        nick = "unknown"
+    return nick
 
 def ircOnPubMsg(connection, event):
     text = event.source().split('!')[0] + "> " + event.arguments()[0]
@@ -55,31 +67,46 @@ def waOnAuthSuccess(username):
 def waOnMessageReceived(messageId, jid, messageContent, timestamp, wantsReceipt, pushName, isBroadCast):
     if messageContent.lower() == "add":
         text = "you have been added to " + irc_channel
-        methodsInterface.call("message_send", (jid, text.encode("utf-8")))
         methodsInterface.call("group_addParticipant", (wa_group, jid))
         methodsInterface.call("message_send", (jid, text.encode("utf-8")))
     if messageContent.lower() == "help":
-        text = "say 'create' to let me create the groupschat if it is not existing yet or say 'add' and I will add you to the existing " + irc_channel
+        text = "say 'create' to let me create the groupschat if it is not existing yet or say 'add' and I will let you join " + irc_channel
         methodsInterface.call("message_send", (jid, text.encode("utf-8")))
     if messageContent.lower() == "create":
         global creator
         creator = jid
-        text = "say 'add' and I will add you to " + irc_channel
-        methodsInterface.call("message_send", (jid, text.encode("utf-8")))
-        methodsInterface.call("group_create", (irc_channel,))
+        if wa_group == "":
+            methodsInterface.call("group_create", (irc_channel,))
+        else:
+            text = "there is already a channel, ask me to 'add' you - if not please change the config.py and ask again"
+            methodsInterface.call("message_send", (jid, text.encode("utf-8")))
     methodsInterface.call("message_ack", (jid, messageId))
 
 def waOnGroupMessageReceived(messageId, jid, author, messageContent, timestamp, wantsReceipt, pushName):
+    global wa_group
     if wa_group == "":
         print "setting group to " + jid
-        global wa_group
         wa_group = jid
-    try:
-        nick = wa_contacts[author[:11]]
-    except KeyError:
-        nick = "unknown"
-    irc.privmsg(irc_channel, "[" + nick + "] " + messageContent)
+    irc.privmsg(irc_channel, "[" + getNick(author) + "] " + messageContent)
     methodsInterface.call("message_ack", (jid, messageId))
+
+def waOnGroupImageReceived(msgId, fromAttribute, author, mediaPreview, mediaUrl, mediaSize, wantsReceipt):
+    irc.privmsg(irc_channel, "[" + getNick(author) + " image@wa] " + mediaUrl)
+    #methodsInterface.call("notification_ack", (author, msgId))
+    methodsInterface.call("message_ack", (fromAttribute, msgId))
+
+def waNotificationGroupParticipantAdded(groupJid, jid, author, timestamp, messageId, receiptRequested):
+    irc.privmsg(irc_channel, "[" + getNick(jid) + " joined " + irc_channel + "@wa]")
+    methodsInterface.call("notification_ack", (groupJid, messageId))
+
+def waNotificationGroupParticipantRemoved(groupJid, jid, author, timestamp, messageId, receiptRequested):
+    irc.privmsg(irc_channel, "[" + getNick(jid) + " left " + irc_channel + "@wa]")
+    methodsInterface.call("notification_ack", (groupJid, messageId))
+
+def onGroupLocationReceived(msgId, fromAttribute, author, name, mediaPreview, mlatitude, mlongitude, wantsReceipt):
+    url = "http://maps.google.com/?q=" + mlatitude + "," + mlongitude
+    irc.privmsg(irc_channel, "[" + getNick(author) + " location@wa] " + url)
+    methodsInterface.call("message_ack", (fromAttribute, msgId))
 
 wa_password = base64.b64decode(bytes(wa_password.encode('utf-8')))
 
@@ -90,13 +117,20 @@ signalsInterface.registerListener("message_received", waOnMessageReceived)
 signalsInterface.registerListener("group_messageReceived", waOnGroupMessageReceived)
 signalsInterface.registerListener("group_createSuccess", waOnGroupCreate)
 signalsInterface.registerListener("group_createFail", waGroupCreateFail)
+signalsInterface.registerListener("group_imageReceived", waOnGroupImageReceived)
+signalsInterface.registerListener("notification_groupParticipantAdded", waNotificationGroupParticipantAdded)
+signalsInterface.registerListener("notification_groupParticipantRemoved", waNotificationGroupParticipantRemoved)
+signalsInterface.registerListener("group_locationReceived", onGroupLocationReceived)
 # irc handlers
 irc.add_global_handler("disconnect", ircOnDisconnect)
 irc.add_global_handler("welcome", ircOnConnect)
 irc.add_global_handler("privmsg", ircOnPrivMsg)
 irc.add_global_handler("pubmsg", ircOnPubMsg)
 
+# connect to whatsapp
 methodsInterface.call("auth_login", (wa_username, wa_password))
 
-# main loop
+# irc 'forever' main loop 
+# keeps all threads alive 
+# ctrl-c to break
 client.process_forever()
