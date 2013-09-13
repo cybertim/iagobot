@@ -11,6 +11,14 @@ simple Whatsapp bridge to and from IRC based on irclib and yowsup
 4. Send images and locations to whatsapp - see a clickable URL on IRC
 5. Get notifications about joining / leaving whatsapp users on IRC
 
+### Installation
+
+1. `apt-get install python-irclib python-dateutil`
+2. `git clone https://github.com/cybertim/iagobot.git`
+3. `cd iagobot`
+4. `git submodule init`
+5. `git submodule update`
+
 ### Configuration
 
 1. copy `config.py.example` to `config.py`
