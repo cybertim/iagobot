@@ -33,7 +33,11 @@ def ircOnPubMsg(connection, event):
     if wa_group == "":
         print "set a whatsapp group first!"
     else:
-        methodsInterface.call("message_send", (wa_group, text.encode("utf-8")))
+        try:
+            text = text.encode("utf-8")
+        except UnicodeDecodeError:
+            pass
+        methodsInterface.call("message_send", (wa_group, text))
 
 def ircOnPrivMsg(connection, event):
     print event.arguments
