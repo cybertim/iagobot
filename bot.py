@@ -20,12 +20,10 @@ except ServerConnectionError as x:
     print x
     exit(1)
 
-# the length of the phonenumber is 11 by default
-# if your country uses something else, change the 11 here
-# to the length you have in the config.py to ident the nicks
 def getNick(jid):
     try:
-        nick = wa_contacts[jid[:11]]
+        phone_number = jid.split('@')[0]
+        nick = wa_contacts[phone_number]
     except KeyError:
         nick = "unknown"
     return nick
@@ -35,7 +33,11 @@ def ircOnPubMsg(connection, event):
     if wa_group == "":
         print "set a whatsapp group first!"
     else:
-        methodsInterface.call("message_send", (wa_group, text.encode("utf-8")))
+        try:
+            text = text.encode("utf-8")
+        except UnicodeDecodeError:
+            pass
+        methodsInterface.call("message_send", (wa_group, text))
 
 def ircOnPrivMsg(connection, event):
     print event.arguments
